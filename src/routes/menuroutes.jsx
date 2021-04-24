@@ -1,7 +1,7 @@
 import React from 'react';
 //Components
 import Search from '../pages/search/index';
-import Products from '../pages/products/index';
+import Products from '../pages/analysis/index';
 //Icons
 import AssessmentIcon from '@material-ui/icons/Assessment';
 import HistoryIcon from '@material-ui/icons/History';
@@ -13,10 +13,9 @@ export const createRoutes = (routes) => {
   const adminRoutes = [];
   if (routes.length > 0) {
     routes.forEach(item => {
-      console.log(item.name)
       if (item.name === 'Búsqueda') {
         adminRoutes.push({
-          path: '/main',
+          path: '/',
           name: item.name,
           icon: () => <SearchIcon style={{ color: '#FFC02E' }} />,
           component: Search,

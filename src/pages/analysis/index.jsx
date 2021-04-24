@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-// import CircularLoading from '../../components/loading/circularLoading';
+import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import {
   Paper,
   FormControl,
@@ -11,27 +11,25 @@ import {
   Grid,
   Button,
   Typography,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TablePagination,
-  TableRow,
-  IconButton,
-  withStyles
+  // TextField,
+  // withStyles
 } from '@material-ui/core';
 import {
   MuiPickersUtilsProvider,
 } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/moment';
-import { getCommerceByFilter } from '../../redux/commerce/actions';
-import EnhancedTableHead from './enhacedTableHead';
+import DetailsModal from '../search/details/index';
 import moment from 'moment';
-import DetailsIcon from '@material-ui/icons/Details';
-import DetailsModal from './details/index';
-import { StyledTableCell, StyledTableRow } from '../common/styledElements';
-import { getComparator, stableSort } from '../../functions/tableOrder';
+import * as am4core from "@amcharts/amcharts4/core";
+import * as am4charts from "@amcharts/amcharts4/charts";
+
+import {
+  getComplaintsByCommerce,
+  getComplaintsByRegion,
+  getComplaintsByDepartment,
+  getComplaintsByMunicipality
+} from '../../redux/complaints/actions';
+
 const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
@@ -101,11 +99,22 @@ const useStyles = makeStyles(theme => ({
 
 }));
 
-const Search = () => {
-  const distpach = useDispatch();
+const Analysis = () => {
+  am4core.useTheme(am4themes_animated);
+  const dispatch = useDispatch();
+  const chart = useRef(null);
   const classes = useStyles();
   const { departments, regions } = useSelector(state => state.departmentsReducer);
-  const { success, commerce_data, error, isLoading: loading } = useSelector(state => state.commerceData);
+  const { success, commerce_data, isLoading: loading } = useSelector(state => state.commerceData);
+  const { commerces } = useSelector(state => state.commercesList)
+  const {
+    success: successComplaints,
+    count,
+    commerce_complaints,
+    region_complaints,
+    department_complaints,
+    municipality_complaints
+  } = useSelector(state => state.complaintsData)
   // Select data
   const [fil_region, setFilRegion] = useState([]);
   const [fil_deptos, setFilDeptos] = useState([]);
@@ -114,7 +123,7 @@ const Search = () => {
   const [depto, setDepto] = useState('');
   const [muni, setMuni] = useState('');
   const [region, setRegion] = useState('');
-  const [comm_name, setCommName] = useState('');
+  const [commId, setCommId] = useState('');
   // Table  
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -141,9 +150,12 @@ const Search = () => {
       setRegion('');
       setDepto('');
       setMuni('');
-      setCommName('');
+      setCommId('');
+      if (chart) {
+        // chart.dispose();
+      }
     })
-  }, []);
+  }, [departments, regions]);
 
   useEffect(() => {
     if (region !== '') {
@@ -159,29 +171,90 @@ const Search = () => {
     } else {
       setFilMuni([]);
     }
-  }, [region, depto])
+  }, [region, depto, departments])
+
+  useEffect(() => {
+    const c_chart = am4core.create("dataChart", am4charts.XYChart);
+    if (successComplaints) {
+      const data = [];
+      commerce_complaints.branches.forEach((it => {
+        if (it) {
+          data.push({
+            name: it.name,
+            complaints: it.complaints.length
+          });
+        }
+      }))
+      console.log(data)
+      c_chart.padding(40, 40, 40, 40);
+      let categoryAxis = c_chart.yAxes.push(new am4charts.CategoryAxis());
+      categoryAxis.renderer.grid.template.location = 0;
+      categoryAxis.dataFields.category = "name";
+      categoryAxis.renderer.minGridDistance = 1;
+      categoryAxis.renderer.inversed = true;
+      categoryAxis.renderer.grid.template.disabled = true;
+
+      let valueAxis = c_chart.xAxes.push(new am4charts.ValueAxis());
+      valueAxis.min = 0;
+
+      let series = c_chart.series.push(new am4charts.ColumnSeries());
+      series.dataFields.categoryY = "name";
+      series.dataFields.valueX = "complaints";
+      series.tooltipText = `{valueX.complaints} Quejas`
+      series.columns.template.strokeOpacity = 0;
+      series.columns.template.column.cornerRadiusBottomRight = 5;
+      series.columns.template.column.cornerRadiusTopRight = 5;
+
+      let labelBullet = series.bullets.push(new am4charts.LabelBullet())
+      labelBullet.label.horizontalCenter = "left";
+      labelBullet.label.dx = 10;
+      labelBullet.label.text = "{values.valueX.workingValue.formatNumber('#.0as')}";
+      labelBullet.locationX = 1;
+
+      // as by default columns of the same series are of the same color, we add adapter which takes colors from chart.colors color set
+      series.columns.template.adapter.add("fill", function (fill, target) {
+        return c_chart.colors.getIndex(target.dataItem.index);
+      });
+
+      categoryAxis.sortBySeries = series;
+      c_chart.data = data;
+      chart.current = c_chart
+    }
+  }, [successComplaints, count, commerce_complaints])
 
   // if (isLoading || loading) {
   //   return <CircularLoading isLoading={isLoading} />
   // }
 
   const handleSubmit = (e) => {
-    if (comm_name.trim() === "" && region === 0
-      && depto === 0 && muni === 0) {
+    if (typeof commId === 'string' && typeof region === 'string'
+      && typeof depto === 'string' && typeof muni === 'string') {
       return console.log("Seleccionar parametros de consulta");
     }
 
-    const variables = {
-      commerce_name: comm_name,
-      regionId: region !== "" ? region : 0,
-      departmentId: depto !== "" ? depto : 0,
-      municipalityId: muni !== "" ? muni : 0
+    if ((commId || commId !== '')
+      && (region === '' && depto === '' && muni === '')) {
+      dispatch(getComplaintsByCommerce({ commerceId: commId }));
     }
-    distpach(getCommerceByFilter(variables));
+
+    if ((region || region !== '')
+      && (commId === '' && depto === '' && muni === '')) {
+      dispatch(getComplaintsByRegion({ regionId: region }));
+    }
+
+    if ((depto || depto !== '')
+      && (commId === '' && region === '' && muni === '')) {
+      dispatch(getComplaintsByDepartment({ departmentId: depto }));
+    }
+
+    if (muni || muni !== '') {
+      dispatch(getComplaintsByMunicipality({ municipalityId: muni }));
+    }
+
     setRegion('');
     setDepto('');
     setMuni('');
-    setCommName('');
+    setCommId('');
   }
 
   const handleSelectAllClick = (event) => {
@@ -208,23 +281,34 @@ const Search = () => {
     setOpen(true);
   }
 
-  const emptyRows = commerce_data && commerce_data.length ? rowsPerPage - Math.min(rowsPerPage, commerce_data.length - page * rowsPerPage) : 0;
+  const emptyRows = rowsPerPage - Math.min(rowsPerPage, commerce_data.length - page * rowsPerPage);
 
   return (
     <div>
       <Paper className={classes.root}>
-        <Typography component="h2" className={classes.title} >Búsqueda</Typography>
+        <Typography component="h2" className={classes.title} >Analisis</Typography>
         <div className={classes.filters} >
           <MuiPickersUtilsProvider utils={DateFnsUtils} >
             <Grid container justify="space-around">
               <FormControl variant="outlined" className={classes.formControl}>
-                <TextField
+                <InputLabel id="demo-simple-select-outlined-label">Comercio</InputLabel>
+                <Select
                   color="primary"
+                  labelId="demo-simple-select-outlined-label"
                   id="demo-simple-select-outlined"
-                  value={comm_name}
-                  onChange={(e) => setCommName(e.target.value)}
-                  label="Nombre"
-                />
+                  value={commId}
+                  onChange={(e) => setCommId(e.target.value)}
+                  label="Region"
+                >
+                  <MenuItem value="">
+                    <em>Ninguna</em>
+                  </MenuItem>
+                  {
+                    commerces.length > 0 && commerces.map(comm => (
+                      <MenuItem key={comm.id} value={comm.id}>{comm.name}</MenuItem>
+                    ))
+                  }
+                </Select>
               </FormControl>
               <FormControl variant="outlined" className={classes.formControl}>
                 <InputLabel id="demo-simple-select-outlined-label">Region</InputLabel>
@@ -293,64 +377,24 @@ const Search = () => {
         {
           commerce_data.length > 0 ?
             <div className={classes.table_container}>
-              <TableContainer className={classes.container}>
-                <Table stickyHeader aria-label="sticky table">
-                  <EnhancedTableHead
-                    classes={classes}
-                    numSelected={selected.length}
-                    order={order}
-                    orderBy={orderBy}
-                    onSelectAllClick={handleSelectAllClick}
-                    onRequestSort={handleRequestSort}
-                    rowCount={commerce_data.length}
-                  />
-                  <TableBody>
-                    {stableSort(commerce_data, getComparator(order, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => {
-                      const labelId = `enhanced-table-checkbox-${index}`;
-                      const date = moment(row.createdAt).format("YYYY-MM-DD");
-                      return (
-                        <StyledTableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.nit}</StyledTableCell>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.name}</StyledTableCell>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.trade_patent}</StyledTableCell>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{date}</StyledTableCell>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.commerce_type.name}</StyledTableCell>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">
-                            <IconButton onClick={() => handleOpenModal(row)} >
-                              <DetailsIcon color="primary" />
-                            </IconButton>
-                          </StyledTableCell>
-                        </StyledTableRow>
-                      );
-                    })}
-                    {emptyRows > 0 && (
-                      <TableRow style={{ height: 53 * emptyRows }}>
-                        <TableCell colSpan={6} />
-                      </TableRow>
-                    )}
-
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <TablePagination
-                rowsPerPageOptions={[10, 25, 100]}
-                component="div"
-                count={Math.round(commerce_data.length / rowsPerPage) === 0 ? 1 : Math.round(commerce_data.length / rowsPerPage)}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
-              />
+              {/* <div>
+                <div id="dataChart" style={{ width: '100%', height: '40vh' }} ></div>
+              </div> */}
             </div>
             :
             success && !loading ?
               <Typography style={{ padding: '2%', textAlign: 'center' }} component="h3" >No existen datos que mostrar</Typography>
               : null
         }
+        <div className={classes.table_container}>
+          <div>
+            <div id="dataChart" style={{ width: '100%', height: '40vh' }} ></div>
+          </div>
+        </div>
       </Paper>
       {open && <DetailsModal open={open} handleClose={handleCloseModal} data={details} />}
     </div>
   )
 };
 
-export default Search;
+export default Analysis;

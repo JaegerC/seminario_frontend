@@ -6,7 +6,7 @@ import AppRoutes from './AppRoutes';
 // import adminRoutes from '../routes/menuroutes';
 import { esES } from '@material-ui/core/locale';
 import { Provider } from 'react-redux';
-import AppContext from './AppContext';
+// import AppContext from './AppContext';
 import { store } from '../redux/store';
 
 const history = createBrowserHistory();

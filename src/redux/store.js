@@ -4,11 +4,13 @@ import { setAuthorizationToken } from '../utils/setAuthorizationToken';
 import * as user from './user/reducers';
 import * as common from './common/reducers';
 import * as commerce from './commerce/reducers';
+import * as complaints from './complaints/reducers';
 
 const rootReducer = combineReducers({
   ...user,
   ...common,
-  ...commerce
+  ...commerce,
+  ...complaints
 });
 
 export const store = createStore(
