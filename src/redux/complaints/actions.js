@@ -84,6 +84,7 @@ export function getComplaintsByCommerce(variables, isLoading = true) {
 }
 
 export function getComplaintsByRegion(variables, isLoading = true) {
+  console.log(variables)
   return dispatch => {
     dispatch({
       type: actionTypes.GET_COMPLAINT_DATA_BY_REGION_REQUEST,
@@ -100,41 +101,41 @@ export function getComplaintsByRegion(variables, isLoading = true) {
         {
           data: [
             'id',
-            'detail',
-            'request',
-            'doc_invoice',
-            'createdAt',
-            'updatedAt',
+            'name',
             {
-              branch: [
+              departments: [
                 'id',
                 'name',
-                'address',
-                'number',
                 {
-                  commerce: [
+                  municipalities: [
                     'id',
                     'name',
                     {
-                      commerce_type: [
-                        'id',
-                        'name'
-                      ]
-                    }
-                  ]
-                },
-                {
-                  municipality: [
-                    'id',
-                    'name',
-                    {
-                      department: [
+                      branches: [
                         'id',
                         'name',
+                        'address',
+                        'number',
                         {
-                          region: [
+                          complaints: [
                             'id',
-                            'name'
+                            'detail',
+                            'request',
+                            'doc_invoice',
+                            'createdAt',
+                            'updatedAt',
+                          ]
+                        },
+                        {
+                          commerce: [
+                            'id',
+                            'name',
+                            {
+                              commerce_type: [
+                                'id',
+                                'name'
+                              ]
+                            }
                           ]
                         }
                       ]
@@ -151,11 +152,14 @@ export function getComplaintsByRegion(variables, isLoading = true) {
         if (response) {
           dispatch({
             type: actionTypes.GET_COMPLAINT_DATA_BY_REGION_RESPONSE,
-            payload: response.data.data.getComplaintByRegion
+            success: response.data.data.getComplaintByRegion.success,
+            payload: response.data.data.getComplaintByRegion.data,
+            count: response.data.data.getComplaintByRegion.count
           });
         }
       })
       .catch(({ response }) => {
+        console.log(response)
         if (response) {
           dispatch({
             type: actionTypes.GET_COMPLAINT_DATA_BY_REGION_FAILURE,
@@ -183,39 +187,39 @@ export function getComplaintsByDepartment(variables, isLoading = true) {
         {
           data: [
             'id',
-            'detail',
-            'request',
-            'doc_invoice',
-            'createdAt',
-            'updatedAt',
+            'name',
             {
-              branch: [
+              region: [
                 'id',
                 'name',
-                'address',
-                'number',
+              ]
+            },
+            {
+              municipalities: [
+                'id',
+                'name',
                 {
-                  commerce: [
+                  branches: [
                     'id',
                     'name',
+                    'address',
+                    'number',
                     {
-                      commerce_type: [
+                      complaints: [
                         'id',
-                        'name'
+                        'detail',
+                        'request',
+                        'doc_invoice',
+                        'createdAt',
+                        'updatedAt',
                       ]
-                    }
-                  ]
-                },
-                {
-                  municipality: [
-                    'id',
-                    'name',
+                    },
                     {
-                      department: [
+                      commerce: [
                         'id',
                         'name',
                         {
-                          region: [
+                          commerce_type: [
                             'id',
                             'name'
                           ]
@@ -234,11 +238,14 @@ export function getComplaintsByDepartment(variables, isLoading = true) {
         if (response) {
           dispatch({
             type: actionTypes.GET_COMPLAINT_DATA_BY_DEPARTMENT_RESPONSE,
-            payload: response.data.data.getComplaintByDepartment
+            success: response.data.data.getComplaintByDepartment.success,
+            payload: response.data.data.getComplaintByDepartment.data,
+            count: response.data.data.getComplaintByDepartment.count
           });
         }
       })
       .catch(({ response }) => {
+        console.log(response)
         if (response) {
           dispatch({
             type: actionTypes.GET_COMPLAINT_DATA_BY_DEPARTMENT_FAILURE,
@@ -266,17 +273,35 @@ export function getComplaintsByMunicipality(variables, isLoading = true) {
         {
           data: [
             'id',
-            'detail',
-            'request',
-            'doc_invoice',
-            'createdAt',
-            'updatedAt',
+            'name',
             {
-              branch: [
+              department: [
+                'id',
+                'name',
+                {
+                  region: [
+                    'id',
+                    'name'
+                  ]
+                }
+              ]
+            },
+            {
+              branches: [
                 'id',
                 'name',
                 'address',
                 'number',
+                {
+                  complaints: [
+                    'id',
+                    'detail',
+                    'request',
+                    'doc_invoice',
+                    'createdAt',
+                    'updatedAt',
+                  ]
+                },
                 {
                   commerce: [
                     'id',
@@ -285,24 +310,6 @@ export function getComplaintsByMunicipality(variables, isLoading = true) {
                       commerce_type: [
                         'id',
                         'name'
-                      ]
-                    }
-                  ]
-                },
-                {
-                  municipality: [
-                    'id',
-                    'name',
-                    {
-                      department: [
-                        'id',
-                        'name',
-                        {
-                          region: [
-                            'id',
-                            'name'
-                          ]
-                        }
                       ]
                     }
                   ]
@@ -324,6 +331,7 @@ export function getComplaintsByMunicipality(variables, isLoading = true) {
         }
       })
       .catch(({ response }) => {
+        console.log(response.data)
         if (response) {
           dispatch({
             type: actionTypes.GET_COMPLAINT_DATA_BY_MUNICIPALITY_FAILURE,

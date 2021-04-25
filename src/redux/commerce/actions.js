@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as actionTypes from '../actionTypes';
-import { API_URL, routesApi } from '../../constants/api';
+import { API_URL } from '../../constants/api';
 import { query } from 'gql-query-builder';
 
 export function getCommerceByFilter(variables, isLoading = true) {
@@ -83,6 +83,7 @@ export function getCommerceByFilter(variables, isLoading = true) {
         }
       })
       .catch(({ response }) => {
+        console.log(response.data)
         if (response) {
           dispatch({
             type: actionTypes.GET_COMMERCE_DATA_BY_FILTER_FAILURE,

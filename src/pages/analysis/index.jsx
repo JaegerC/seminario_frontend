@@ -13,26 +13,29 @@ import {
   Typography,
   // TextField,
   // withStyles
+  IconButton
 } from '@material-ui/core';
 import {
   MuiPickersUtilsProvider,
 } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/moment';
-import DetailsModal from '../search/details/index';
-import moment from 'moment';
+import DetailsModal from './complaints/index';
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
-
+import CircularLoading from '../../components/loading/circularLoading';
 import {
   getComplaintsByCommerce,
   getComplaintsByRegion,
   getComplaintsByDepartment,
   getComplaintsByMunicipality
 } from '../../redux/complaints/actions';
+import CustomizedSnackbars from '../../components/snack/index';
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
 const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
+    height: '100vh'
   },
   container: {
     maxHeight: 440,
@@ -105,10 +108,11 @@ const Analysis = () => {
   const chart = useRef(null);
   const classes = useStyles();
   const { departments, regions } = useSelector(state => state.departmentsReducer);
-  const { success, commerce_data, isLoading: loading } = useSelector(state => state.commerceData);
   const { commerces } = useSelector(state => state.commercesList)
   const {
-    success: successComplaints,
+    error,
+    success,
+    isLoading,
     count,
     commerce_complaints,
     region_complaints,
@@ -124,24 +128,18 @@ const Analysis = () => {
   const [muni, setMuni] = useState('');
   const [region, setRegion] = useState('');
   const [commId, setCommId] = useState('');
-  // Table  
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [selected, setSelected] = useState([]);
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('nit');
   //Modal
   const [open, setOpen] = useState(false);
-  const [details, setDetails] = useState({});
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(event.target.value);
-    setPage(0);
-  };
+  // Titles
+  const [type, setType] = useState('');
+  const [title, setTitle] = useState('');
+  const [chart_data, setChartData] = useState([]);
+  const [complaint_count, setComplaintCount] = useState(0);
+  //Snackbar
+  const [open_snack, setOpenSnack] = useState(false);
+  const [message, setMessage] = useState({});
+  // Complaints
+  const [complaint_list, setComplaintList] = useState([]);
 
   useEffect(() => {
     setFilRegion(regions);
@@ -174,18 +172,168 @@ const Analysis = () => {
   }, [region, depto, departments])
 
   useEffect(() => {
-    const c_chart = am4core.create("dataChart", am4charts.XYChart);
-    if (successComplaints) {
+    // Handle complaints by commerce
+    if (success && commerce_complaints.branches && commId !== '') {
+      setCommId('');
       const data = [];
+      let complaints_data = [];
       commerce_complaints.branches.forEach((it => {
         if (it) {
           data.push({
             name: it.name,
             complaints: it.complaints.length
           });
+          if (it.complaints.length > 0) {
+            it.complaints.forEach(cmp => {
+              cmp['commerce_name'] = commerce_complaints.name;
+              cmp['branch_name'] = it.name;
+            });
+          }
+          complaints_data = [
+            ...complaints_data,
+            ...it.complaints
+          ];
         }
       }))
-      console.log(data)
+      setComplaintList(complaints_data)
+      setComplaintCount(count);
+      setChartData(data);
+      setType('Comercio');
+      setTitle(commerce_complaints.name);
+    }
+
+    // Handle complaints by region
+    if (region_complaints && region_complaints.departments && region !== '') {
+      setRegion('');
+      const data = [];
+      let complaints_data = [];
+      region_complaints.departments.forEach(item => {
+        let count_complaints = 0;
+        if (item.municipalities) {
+          item.municipalities.forEach(mun => {
+            if (mun.branches && mun.branches.length > 0) {
+              mun.branches.forEach(br => {
+                count_complaints += br.complaints.length;
+                if (br.complaints.length > 0) {
+                  br.complaints.forEach(cmp => {
+                    cmp['commerce_name'] = br.commerce.name;
+                    cmp['branch_name'] = br.name;
+                  })
+                }
+                complaints_data = [
+                  ...complaints_data,
+                  ...br.complaints
+                ];
+              })
+            }
+          })
+        }
+        data.push({
+          name: item.name,
+          complaints: count_complaints
+        });
+      });
+      setComplaintList(complaints_data);
+      setComplaintCount(count);
+      setChartData(data);
+      setType('Región');
+      setTitle(region_complaints.name);
+    }
+
+    // Handle complaints by department
+    if (department_complaints && department_complaints.municipalities && depto !== '') {
+      setDepto('');
+      const data = [];
+      let complaints_data = [];
+      department_complaints.municipalities.forEach(muni => {
+        if (muni && muni.branches) {
+          let complaints_count = 0;
+          muni.branches.forEach(br => {
+            if (br && br.complaints) {
+              complaints_count += br.complaints.length
+              if (br.complaints.length > 0) {
+                br.complaints.forEach(cmp => {
+                  cmp['commerce_name'] = br.commerce.name;
+                  cmp['branch_name'] = br.name
+                });
+              }
+              complaints_data = [
+                ...complaints_data,
+                ...br.complaints
+              ]
+            }
+          });
+          data.push({
+            name: muni.name,
+            complaints: complaints_count
+          });
+        }
+      })
+      setComplaintList(complaints_data);
+      setComplaintCount(count);
+      setChartData(data);
+      setType('Departamento');
+      setTitle(department_complaints.name);
+    }
+
+    // Handle complaints by municipality
+    if (municipality_complaints && municipality_complaints.branches && muni !== '') {
+      setMuni('');
+      const data = [];
+      let complaints_data = [];
+      municipality_complaints.branches.forEach(br => {
+        let complaint_count = 0;
+        if (br && br.complaints) {
+          complaint_count = br.complaints.length;
+          if (br.complaints.length > 0) {
+            br.complaints.forEach(cmp => {
+              cmp['commerce_name'] = br.commerce.name;
+              cmp['branch_name'] = br.name;
+            })
+          }
+          complaints_data = {
+            ...complaints_data,
+            ...br.complaints
+          }
+        }
+        data.push({
+          name: br.name,
+          complaints: complaint_count
+        });
+      })
+      setComplaintList(complaints_data);
+      setComplaintCount(count);
+      setChartData(data);
+      setType("Municipio");
+      setTitle(municipality_complaints.name);
+    }
+
+    if (error) {
+      setMessage({
+        message: error,
+        severity: "error"
+      });
+      setOpenSnack(true)
+    }
+  }, [
+    success,
+    count,
+    commerce_complaints,
+    region_complaints,
+    department_complaints,
+    municipality_complaints,
+    type,
+    title,
+    commId,
+    region,
+    depto,
+    muni,
+    error
+  ])
+
+  useEffect(() => {
+    const c_chart = am4core.create("dataChart", am4charts.XYChart);
+    if (chart_data) {
       c_chart.padding(40, 40, 40, 40);
       let categoryAxis = c_chart.yAxes.push(new am4charts.CategoryAxis());
       categoryAxis.renderer.grid.template.location = 0;
@@ -217,72 +365,75 @@ const Analysis = () => {
       });
 
       categoryAxis.sortBySeries = series;
-      c_chart.data = data;
-      chart.current = c_chart
+      c_chart.data = chart_data;
+      chart.current = c_chart;
     }
-  }, [successComplaints, count, commerce_complaints])
+  }, [chart_data])
 
-  // if (isLoading || loading) {
-  //   return <CircularLoading isLoading={isLoading} />
-  // }
+  if (isLoading) {
+    return <CircularLoading isLoading={isLoading} />
+  }
 
   const handleSubmit = (e) => {
     if (typeof commId === 'string' && typeof region === 'string'
       && typeof depto === 'string' && typeof muni === 'string') {
-      return console.log("Seleccionar parametros de consulta");
+      setMessage({
+        message: "Debe seleccionar un parametro de búsqueda",
+        severity: "error"
+      });
+      return setOpenSnack(true)
     }
 
-    if ((commId || commId !== '')
-      && (region === '' && depto === '' && muni === '')) {
-      dispatch(getComplaintsByCommerce({ commerceId: commId }));
-    }
 
-    if ((region || region !== '')
-      && (commId === '' && depto === '' && muni === '')) {
-      dispatch(getComplaintsByRegion({ regionId: region }));
+    if (muni || muni !== '') {
+      cleanStates()
+      return dispatch(getComplaintsByMunicipality({ municipalityId: muni }));
     }
 
     if ((depto || depto !== '')
-      && (commId === '' && region === '' && muni === '')) {
-      dispatch(getComplaintsByDepartment({ departmentId: depto }));
+      /*&& (commId === '' && region === '' && muni === '')*/) {
+      cleanStates();
+      return dispatch(getComplaintsByDepartment({ departmentId: depto }));
     }
 
-    if (muni || muni !== '') {
-      dispatch(getComplaintsByMunicipality({ municipalityId: muni }));
+    if ((region || region !== '')
+      /*&& (commId === '' && depto === '' && muni === '')*/) {
+      cleanStates();
+      return dispatch(getComplaintsByRegion({ regionId: region }));
     }
 
-    setRegion('');
-    setDepto('');
-    setMuni('');
-    setCommId('');
+    if ((commId || commId !== '')
+      /*&& (region === '' && depto === '' && muni === '')*/) {
+      cleanStates();
+      return dispatch(getComplaintsByCommerce({ commerceId: commId }));
+    }
+
   }
 
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = commerce_data.map((n) => n.nit);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
+  const cleanStates = () => {
+    setType('');
+    setTitle('');
+    setChartData([]);
+    setComplaintList([]);
+    setComplaintCount(0);
+  }
 
   const handleCloseModal = () => {
     setOpen(false);
   }
 
-  const handleOpenModal = (data) => {
-    setDetails(data);
-    setOpen(true);
+  const handleOpenModal = () => {
+    if (complaint_list.length > 0) {
+      setOpen(true);
+    } else {
+      setMessage({
+        message: "No existen quejas que mostrar",
+        severity: "error"
+      });
+      setOpenSnack(true)
+    }
   }
-
-  const emptyRows = rowsPerPage - Math.min(rowsPerPage, commerce_data.length - page * rowsPerPage);
-
+  console.log(complaint_list);
   return (
     <div>
       <Paper className={classes.root}>
@@ -370,29 +521,32 @@ const Analysis = () => {
                   }
                 </Select>
               </FormControl>
-              <Button onClick={handleSubmit} >Buscar</Button>
+              <Button onClick={handleSubmit} style={{ backgroundColor: "#04619f", color: "white", width: '100px' }} >Buscar</Button>
             </Grid>
           </MuiPickersUtilsProvider>
         </div>
-        {
-          commerce_data.length > 0 ?
-            <div className={classes.table_container}>
-              {/* <div>
-                <div id="dataChart" style={{ width: '100%', height: '40vh' }} ></div>
-              </div> */}
-            </div>
-            :
-            success && !loading ?
-              <Typography style={{ padding: '2%', textAlign: 'center' }} component="h3" >No existen datos que mostrar</Typography>
-              : null
-        }
         <div className={classes.table_container}>
+          {
+
+            type !== '' && title !== '' && <Typography>{type}: {title}</Typography>
+          }
+          {
+
+            type !== '' && title !== '' && <Typography>Número de quejas: {complaint_count}</Typography>
+          }
           <div>
             <div id="dataChart" style={{ width: '100%', height: '40vh' }} ></div>
+            {!isLoading && chart_data.length === 0 && <Typography style={{ padding: '2%', textAlign: 'center' }} component="h3" >No existen datos que mostrar</Typography>}
           </div>
         </div>
+        {chart_data.length > 0 &&
+          <IconButton onClick={handleOpenModal} >
+            Detalles de quejas
+            <KeyboardArrowDownIcon color="primary" fontSize="large" style={{ padding: '2%' }} />
+          </IconButton>}
       </Paper>
-      {open && <DetailsModal open={open} handleClose={handleCloseModal} data={details} />}
+      {open && <DetailsModal open={open} handleClose={handleCloseModal} data={complaint_list} name={`${type}: ${title}`} />}
+      {open_snack && <CustomizedSnackbars message={message} setOpenSnack={setOpenSnack} open={open_snack} />}
     </div>
   )
 };

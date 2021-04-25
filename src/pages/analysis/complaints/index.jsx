@@ -10,11 +10,14 @@ import {
   TableContainer,
   Table,
   TableBody,
+  TableRow,
+  TableCell,
   TablePagination
 } from '@material-ui/core';
 import DetailsTableHead from './detailsTableHead';
 import { StyledTableCell, StyledTableRow } from '../../common/styledElements';
 import { getComparator, stableSort } from '../../../functions/tableOrder';
+import moment from 'moment';
 
 const useStyles = makeStyles(theme => ({
   modal: {
@@ -120,8 +123,8 @@ const useStyles = makeStyles(theme => ({
     padding: '1%'
   },
   container: {
-    width: '60%',
-    height: '70%',
+    width: '80%',
+    height: '80%',
   },
   modal_content: {
     padding: '2%',
@@ -189,21 +192,15 @@ const CssBackdrop = withStyles({
 const DetailsModal = (props) => {
   const classes = useStyles();
   const { data } = props;
-  const [complaints, setComplaints] = useState(0);
   //Table
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(3);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [selected, setSelected] = useState([]);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('number');
 
   useEffect(() => {
-    if (data && data.branches) {
-      let total = 0;
-      data.branches.forEach(b => {
-        total += b.complaints.length;
-      })
-      setComplaints(total);
+    if (data && data.length) {
     } else {
       props.handleClose();
     }
@@ -211,7 +208,7 @@ const DetailsModal = (props) => {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = data.branches.map((n) => n.nit);
+      const newSelecteds = data.map((n) => n.doc_invoice);
       setSelected(newSelecteds);
       return;
     }
@@ -233,7 +230,7 @@ const DetailsModal = (props) => {
     setPage(0);
   };
 
-  // const emptyRows = data && data.branches ? rowsPerPage - Math.min(rowsPerPage, data.branches.length - page * rowsPerPage) : 0;
+  const emptyRows = data && data.length > 0 ? rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage) : 0;
 
   return (
     <Modal
@@ -254,22 +251,7 @@ const DetailsModal = (props) => {
         <Paper className={classes.container} elevation={10} >
           <div className={classes.modal_content} >
             <div className={classes.title}>
-              <Typography className={classes.name} variant="h5" gutterBottom >{data.name}</Typography>
-            </div>
-            <div className={classes.info}>
-              <div className={classes.details_container}>
-                <Typography>NIT: {data.nit}</Typography>
-                <Typography>Tipo de Comercio: {data.commerce_type.name}</Typography>
-                <Typography>Patente: {data.trade_patent}</Typography>
-              </div>
-              <hr />
-              <div className={classes.details_container}>
-                <Typography>Sucursales: {data.branches.length}</Typography>
-                <Typography>Total de quejas: {complaints}</Typography>
-              </div>
-            </div>
-            <div className={classes.title}>
-              <Typography className={classes.name} variant="h5" gutterBottom >Sucursales</Typography>
+              <Typography className={classes.name} variant="h5" gutterBottom >{props.name}</Typography>
             </div>
             <div className={classes.branches}>
               <TableContainer>
@@ -281,33 +263,35 @@ const DetailsModal = (props) => {
                     orderBy={orderBy}
                     onSelectAllClick={handleSelectAllClick}
                     onRequestSort={handleRequestSort}
-                    rowCount={data.branches.length}
+                    rowCount={data.length}
                   />
                   <TableBody>
-                    {stableSort(data.branches, getComparator(order, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => {
+                    {stableSort(data, getComparator(order, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => {
                       const labelId = `enhanced-table-checkbox-${index}`;
+                      const date = moment(row.createdAt).format();
                       return (
                         <StyledTableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.number}</StyledTableCell>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.name}</StyledTableCell>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.address}</StyledTableCell>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.municipality.name}</StyledTableCell>
-                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.complaints.length}</StyledTableCell>
+                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.doc_invoice}</StyledTableCell>
+                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.detail}</StyledTableCell>
+                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.request}</StyledTableCell>
+                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.commerce_name}</StyledTableCell>
+                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{row.branch_name}</StyledTableCell>
+                          <StyledTableCell align="left" id={labelId} component="th" scope="row">{date}</StyledTableCell>
                         </StyledTableRow>
                       );
                     })}
-                    {/* {emptyRows > 0 && (
+                    {emptyRows > 0 && (
                       <TableRow style={{ height: 53 * emptyRows }}>
                         <TableCell colSpan={6} />
                       </TableRow>
-                    )} */}
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
               <TablePagination
-                rowsPerPageOptions={[4]}
+                rowsPerPageOptions={[5, 7]}
                 component="div"
-                count={data.branches.length}
+                count={data.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onChangePage={handleChangePage}

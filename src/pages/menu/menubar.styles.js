@@ -16,7 +16,9 @@ export const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up('sm')]: {
       width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: drawerWidth,
-      backgroundColor: 'black'
+      // backgroundColor: 'black'
+      backgroundColor: '#000000',
+      backgroundImage: 'linear-gradient(175deg, #000000 0%, #04619f 74%)',
     },
   },
   menuButton: {
@@ -29,7 +31,9 @@ export const useStyles = makeStyles((theme) => ({
   toolbar: theme.mixins.toolbar,
   drawerPaper: {
     width: drawerWidth,
-    backgroundColor: 'black'
+    backgroundColor: '#000000',
+    backgroundImage: 'linear-gradient(145deg, #000000 0%, #04619f 74%)',
+    // backgroundColor: 'black'
   },
   content: {
     flexGrow: 1,
@@ -38,7 +42,7 @@ export const useStyles = makeStyles((theme) => ({
   linkStyle: {
     display: 'flex',
     textDecoration: 'none',
-    color: 'black',
+    color: 'white',
     justifyContent: 'center'
   },
 }));

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as actionTypes from '../actionTypes';
-import { API_URL, routesApi } from '../../constants/api';
-import { query, mutation } from 'gql-query-builder';
+import { API_URL } from '../../constants/api';
+import { query } from 'gql-query-builder';
 
 export function getDepartments(isLoading = true) {
   return dispatch => {

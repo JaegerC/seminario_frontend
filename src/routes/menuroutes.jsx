@@ -3,7 +3,7 @@ import React from 'react';
 import Search from '../pages/search/index';
 import Products from '../pages/analysis/index';
 //Icons
-import AssessmentIcon from '@material-ui/icons/Assessment';
+// import AssessmentIcon from '@material-ui/icons/Assessment';
 import HistoryIcon from '@material-ui/icons/History';
 import SearchIcon from '@material-ui/icons/Search'
 // import PersonIcon from '@material-ui/icons/Person';
@@ -17,7 +17,7 @@ export const createRoutes = (routes) => {
         adminRoutes.push({
           path: '/',
           name: item.name,
-          icon: () => <SearchIcon style={{ color: '#FFC02E' }} />,
+          icon: () => <SearchIcon style={{ color: 'white' }} />,
           component: Search,
           to: "/"
 
@@ -26,7 +26,7 @@ export const createRoutes = (routes) => {
         adminRoutes.push({
           path: `/${item.name}`,
           name: item.name,
-          icon: () => <HistoryIcon style={{ color: '#FFC02E' }} />,
+          icon: () => <HistoryIcon style={{ color: 'white' }} />,
           component: Products,
 
         })

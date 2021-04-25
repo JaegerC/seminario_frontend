@@ -7,7 +7,7 @@ export const StyledTableCell = withStyles((theme) => ({
   },
   body: {
     fontSize: 14,
-    borderColor: '#29539B',
+    borderColor: '#04619f',
     padding: '15px',
   },
 }))(TableCell);

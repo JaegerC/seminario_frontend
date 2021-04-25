@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Switch, Route } from 'react-router-dom';
-import Main from '../pages/common/main';
+// import Main from '../pages/common/main';
 import SideBar from '../components/sidebar';
 import { routes } from '../setup/routes';
 // import CircularLoading from '../components/loading/circularLoading';

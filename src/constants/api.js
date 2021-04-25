@@ -1,4 +1,8 @@
-export const API_URL = 'http://localhost:8000/graphql';
+// Local
+// export const API_URL = 'http://localhost:8000/graphql';
+
+// Prod
+export const API_URL = 'http://104.131.127.41:8000/graphql';
 
 export const routesApi = {
   user_create: '/api/user/create',

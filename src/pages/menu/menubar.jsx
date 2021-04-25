@@ -18,7 +18,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import { useTheme } from '@material-ui/core/styles';
 import { Route, Link, Router, Switch, useHistory } from 'react-router-dom';
 import { useStyles } from './menubar.styles';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+// import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 
 const MenuBar = (props) => {
   const { window } = props;
@@ -31,9 +31,9 @@ const MenuBar = (props) => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleLogout = () => {
-    // window.location.replace('/');;
-  }
+  // const handleLogout = () => {
+  //   // window.location.replace('/');;
+  // }
 
   const drawer = (
     <div>
@@ -44,7 +44,7 @@ const MenuBar = (props) => {
           <Link key={index} to={item.path} className={classes.linkStyle}>
             <ListItem button key={item.name}>
               <ListItemIcon>{item.icon()}</ListItemIcon>
-              <ListItemText style={{ color: '#FFC02E' }} primary={item.name} />
+              <ListItemText style={{ color: 'white' }} primary={item.name} />
             </ListItem>
           </Link>
         ))}
@@ -55,8 +55,8 @@ const MenuBar = (props) => {
 
   const container = window !== undefined ? () => window().document.body : undefined;
   const getCurrentLocationName = () => {
-    const { routes } = props;
-    let name = "";
+    // const { routes } = props;
+    let name = "MANEJO DE QUEJAS DIACO";
     // if (routes) {
     //   const element = routes.find(item => item.path === history.location.pathname);
     //   name = element.name;
@@ -79,7 +79,7 @@ const MenuBar = (props) => {
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" noWrap>
+            <Typography variant="h6" noWrap style={{ margin: 'auto' }} >
               {getCurrentLocationName()}
             </Typography>
           </Toolbar>

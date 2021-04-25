@@ -17,7 +17,13 @@ export const complaintsData = (state = complaintsDataInitialState, action) => {
       return {
         ...state,
         isLoading: action.isLoading,
-        error: null
+        error: null,
+        count: 0,
+        success: false,
+        commerce_complaints: [],
+        region_complaints: [],
+        department_complaints: [],
+        municipality_complaints: []
       }
     }
     case actionTypes.GET_COMPLAINT_DATA_BY_COMMERCE_RESPONSE: {
@@ -41,7 +47,13 @@ export const complaintsData = (state = complaintsDataInitialState, action) => {
       return {
         ...state,
         isLoading: action.isLoading,
-        error: null
+        error: null,
+        count: 0,
+        success: false,
+        commerce_complaints: [],
+        region_complaints: [],
+        department_complaints: [],
+        municipality_complaints: []
       }
     }
     case actionTypes.GET_COMPLAINT_DATA_BY_REGION_RESPONSE: {
@@ -65,7 +77,13 @@ export const complaintsData = (state = complaintsDataInitialState, action) => {
       return {
         ...state,
         isLoading: action.isLoading,
-        error: null
+        error: null,
+        count: 0,
+        success: false,
+        commerce_complaints: [],
+        region_complaints: [],
+        department_complaints: [],
+        municipality_complaints: []
       }
     }
     case actionTypes.GET_COMPLAINT_DATA_BY_DEPARTMENT_RESPONSE: {
@@ -89,7 +107,13 @@ export const complaintsData = (state = complaintsDataInitialState, action) => {
       return {
         ...state,
         isLoading: action.isLoading,
-        error: null
+        error: null,
+        count: 0,
+        success: false,
+        commerce_complaints: [],
+        region_complaints: [],
+        department_complaints: [],
+        municipality_complaints: []
       }
     }
     case actionTypes.GET_COMPLAINT_DATA_BY_MUNICIPALITY_RESPONSE: {

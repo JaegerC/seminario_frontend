@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-// import CircularLoading from '../../components/loading/circularLoading';
+import CircularLoading from '../../components/loading/circularLoading';
 import {
   Paper,
   FormControl,
@@ -11,15 +11,14 @@ import {
   Grid,
   Button,
   Typography,
-  TextField,
+  // TextField,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TablePagination,
   TableRow,
-  IconButton,
-  withStyles
+  IconButton
 } from '@material-ui/core';
 import {
   MuiPickersUtilsProvider,
@@ -32,9 +31,12 @@ import DetailsIcon from '@material-ui/icons/Details';
 import DetailsModal from './details/index';
 import { StyledTableCell, StyledTableRow } from '../common/styledElements';
 import { getComparator, stableSort } from '../../functions/tableOrder';
+import CustomizedSnackbars from '../../components/snack/index';
+
 const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
+    height: '100vh'
   },
   container: {
     maxHeight: 440,
@@ -105,7 +107,7 @@ const Search = () => {
   const distpach = useDispatch();
   const classes = useStyles();
   const { departments, regions } = useSelector(state => state.departmentsReducer);
-  const { success, commerce_data, error, isLoading: loading } = useSelector(state => state.commerceData);
+  const { success, commerce_data, error, isLoading } = useSelector(state => state.commerceData);
   // Select data
   const [fil_region, setFilRegion] = useState([]);
   const [fil_deptos, setFilDeptos] = useState([]);
@@ -124,6 +126,9 @@ const Search = () => {
   //Modal
   const [open, setOpen] = useState(false);
   const [details, setDetails] = useState({});
+  //Snackbar
+  const [open_snack, setOpenSnack] = useState(false);
+  const [message, setMessage] = useState({});
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -143,7 +148,17 @@ const Search = () => {
       setMuni('');
       setCommName('');
     })
-  }, []);
+  }, [regions, departments]);
+
+  useEffect(() => {
+    if (error) {
+      setMessage({
+        message: error,
+        severity: "error"
+      });
+      setOpenSnack(true)
+    }
+  }, [error])
 
   useEffect(() => {
     if (region !== '') {
@@ -159,16 +174,20 @@ const Search = () => {
     } else {
       setFilMuni([]);
     }
-  }, [region, depto])
+  }, [region, depto, departments])
 
-  // if (isLoading || loading) {
-  //   return <CircularLoading isLoading={isLoading} />
-  // }
+  if (isLoading) {
+    return <CircularLoading isLoading={isLoading} />
+  }
 
   const handleSubmit = (e) => {
-    if (comm_name.trim() === "" && region === 0
-      && depto === 0 && muni === 0) {
-      return console.log("Seleccionar parametros de consulta");
+    if (comm_name.trim() === "" && region === ''
+      && depto === '' && muni === '') {
+      setMessage({
+        message: "Debe seleccionar un parametro de búsqueda",
+        severity: "error"
+      });
+      return setOpenSnack(true);
     }
 
     const variables = {
@@ -177,6 +196,7 @@ const Search = () => {
       departmentId: depto !== "" ? depto : 0,
       municipalityId: muni !== "" ? muni : 0
     }
+    console.log(variables)
     distpach(getCommerceByFilter(variables));
     setRegion('');
     setDepto('');
@@ -217,15 +237,6 @@ const Search = () => {
         <div className={classes.filters} >
           <MuiPickersUtilsProvider utils={DateFnsUtils} >
             <Grid container justify="space-around">
-              <FormControl variant="outlined" className={classes.formControl}>
-                <TextField
-                  color="primary"
-                  id="demo-simple-select-outlined"
-                  value={comm_name}
-                  onChange={(e) => setCommName(e.target.value)}
-                  label="Nombre"
-                />
-              </FormControl>
               <FormControl variant="outlined" className={classes.formControl}>
                 <InputLabel id="demo-simple-select-outlined-label">Region</InputLabel>
                 <Select
@@ -286,12 +297,12 @@ const Search = () => {
                   }
                 </Select>
               </FormControl>
-              <Button onClick={handleSubmit} >Buscar</Button>
+              <Button onClick={handleSubmit} style={{ backgroundColor: "#04619f", color: "white", width: '100px' }}>Buscar</Button>
             </Grid>
           </MuiPickersUtilsProvider>
         </div>
         {
-          commerce_data.length > 0 ?
+          commerce_data && commerce_data.length > 0 ?
             <div className={classes.table_container}>
               <TableContainer className={classes.container}>
                 <Table stickyHeader aria-label="sticky table">
@@ -335,7 +346,7 @@ const Search = () => {
               <TablePagination
                 rowsPerPageOptions={[10, 25, 100]}
                 component="div"
-                count={Math.round(commerce_data.length / rowsPerPage) === 0 ? 1 : Math.round(commerce_data.length / rowsPerPage)}
+                count={commerce_data.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onChangePage={handleChangePage}
@@ -343,12 +354,13 @@ const Search = () => {
               />
             </div>
             :
-            success && !loading ?
+            success && !isLoading ?
               <Typography style={{ padding: '2%', textAlign: 'center' }} component="h3" >No existen datos que mostrar</Typography>
               : null
         }
       </Paper>
       {open && <DetailsModal open={open} handleClose={handleCloseModal} data={details} />}
+      {open_snack && <CustomizedSnackbars message={message} setOpenSnack={setOpenSnack} open={open_snack} />}
     </div>
   )
 };

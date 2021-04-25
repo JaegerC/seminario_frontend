@@ -14,7 +14,7 @@ const headCells = [
 const StyledTableCell = withStyles((theme) => ({
   head: {
     // backgroundImage: 'linear-gradient(315deg, #738bdc 0%, #48c3eb 74%)',
-    backgroundColor: '#29539B',
+    backgroundColor: '#04619f',
     color: theme.palette.common.white,
   },
   body: {

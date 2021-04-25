@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import StyledInput from '../../components/inputs/styledInput';
 import CustomizedSnackbars from '../../components/snack/index';
 // Actions
-import { login } from '../../redux/user/actions';
+// import { login } from '../../redux/user/actions';
 import { getDepartments, getModules } from '../../redux/common/action';
 
 const theme = createMuiTheme({
@@ -25,7 +25,7 @@ const Main = (props) => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [openModal, setOpenModal] = useState(false);
+  // const [openModal, setOpenModal] = useState(false);
   const [open_snack, setOpenSnack] = useState(false);
   const [message, setMessage] = useState({});
   const { error, token, success } = useSelector(state => state.loginUserReducer)
@@ -72,9 +72,9 @@ const Main = (props) => {
     // dispatch(login({ email, password }));
   }
 
-  const openRegisterModal = () => {
-    setOpenModal(true)
-  }
+  // const openRegisterModal = () => {
+  //   setOpenModal(true)
+  // }
 
   return (
     <>
@@ -118,9 +118,9 @@ const Main = (props) => {
                   size="large"
                   color="primary"
                   className={classes.button}>Ingresar</Button>
-                <button type="button" className={classes.register} onClick={openRegisterModal} >
+                {/* <button type="button" className={classes.register} onClick={openRegisterModal} >
                   Registrarse
-                            </button>
+                            </button> */}
               </ThemeProvider>
             </div>
           </form>
