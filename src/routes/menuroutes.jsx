@@ -2,10 +2,12 @@ import React from 'react';
 //Components
 import Search from '../pages/search/index';
 import Products from '../pages/analysis/index';
+import Complaints from '../pages/complaint/createComplatin';
 //Icons
 // import AssessmentIcon from '@material-ui/icons/Assessment';
-import HistoryIcon from '@material-ui/icons/History';
-import SearchIcon from '@material-ui/icons/Search'
+import AssessmentIcon from '@material-ui/icons/Assessment';
+import SearchIcon from '@material-ui/icons/Search';
+import DescriptionIcon from '@material-ui/icons/Description';
 // import PersonIcon from '@material-ui/icons/Person';
 // import MemoryIcon from '@material-ui/icons/Memory';
 
@@ -22,11 +24,20 @@ export const createRoutes = (routes) => {
           to: "/"
 
         })
-      } else {
+      } else if (item.name === "Quejas") {
         adminRoutes.push({
           path: `/${item.name}`,
           name: item.name,
-          icon: () => <HistoryIcon style={{ color: 'white' }} />,
+          icon: () => <DescriptionIcon style={{ color: 'white' }} />,
+          component: Complaints,
+
+        })
+      }
+      else {
+        adminRoutes.push({
+          path: `/${item.name}`,
+          name: item.name,
+          icon: () => <AssessmentIcon style={{ color: 'white' }} />,
           component: Products,
 
         })

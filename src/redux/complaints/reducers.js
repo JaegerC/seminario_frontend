@@ -137,3 +137,40 @@ export const complaintsData = (state = complaintsDataInitialState, action) => {
       return state;
   }
 }
+
+const createComplaintInitialState = {
+  isLoading: false,
+  error: null,
+  new_complaint: {}
+}
+
+export const complaintAdded = (state = createComplaintInitialState, action) => {
+  switch (action.type) {
+    case actionTypes.CREATE_COMPLAINT_REQUEST: {
+      return {
+        ...state,
+        isLoading: action.isLoading,
+        error: null,
+        new_complaint: {}
+      }
+    }
+    case actionTypes.CREATE_COMPLAINT_RESPONSE: {
+      return {
+        ...state,
+        isLoading: false,
+        new_complaint: action.payload,
+        error: null
+      }
+    }
+    case actionTypes.CREATE_COMPLAINT_FAILURE: {
+      return {
+        ...state,
+        isLoading: false,
+        error: action.error
+      }
+    }
+
+    default:
+      return state;
+  }
+}

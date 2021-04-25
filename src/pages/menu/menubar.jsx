@@ -56,7 +56,7 @@ const MenuBar = (props) => {
   const container = window !== undefined ? () => window().document.body : undefined;
   const getCurrentLocationName = () => {
     // const { routes } = props;
-    let name = "MANEJO DE QUEJAS DIACO";
+    let name = "MANEJO DE QUEJAS DIACO - FREE SOFTWARE";
     // if (routes) {
     //   const element = routes.find(item => item.path === history.location.pathname);
     //   name = element.name;

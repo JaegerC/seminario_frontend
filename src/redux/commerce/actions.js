@@ -83,7 +83,6 @@ export function getCommerceByFilter(variables, isLoading = true) {
         }
       })
       .catch(({ response }) => {
-        console.log(response.data)
         if (response) {
           dispatch({
             type: actionTypes.GET_COMMERCE_DATA_BY_FILTER_FAILURE,
@@ -104,7 +103,16 @@ export function getCommerces(isLoading = true) {
     return axios.post(API_URL, query({
       operation: 'getCommerces',
       variables: {},
-      fields: ['id', 'name']
+      fields: [
+        'id',
+        'name',
+        {
+          branches: [
+            'id',
+            'name'
+          ]
+        }
+      ]
     }))
       .then((response) => {
         if (response) {

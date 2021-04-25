@@ -173,7 +173,7 @@ const Analysis = () => {
 
   useEffect(() => {
     // Handle complaints by commerce
-    if (success && commerce_complaints.branches && commId !== '') {
+    if (success && commerce_complaints.branches) {
       setCommId('');
       const data = [];
       let complaints_data = [];
@@ -203,7 +203,7 @@ const Analysis = () => {
     }
 
     // Handle complaints by region
-    if (region_complaints && region_complaints.departments && region !== '') {
+    if (region_complaints && region_complaints.departments) {
       setRegion('');
       const data = [];
       let complaints_data = [];
@@ -241,7 +241,7 @@ const Analysis = () => {
     }
 
     // Handle complaints by department
-    if (department_complaints && department_complaints.municipalities && depto !== '') {
+    if (department_complaints && department_complaints.municipalities) {
       setDepto('');
       const data = [];
       let complaints_data = [];
@@ -277,7 +277,7 @@ const Analysis = () => {
     }
 
     // Handle complaints by municipality
-    if (municipality_complaints && municipality_complaints.branches && muni !== '') {
+    if (municipality_complaints && municipality_complaints.branches) {
       setMuni('');
       const data = [];
       let complaints_data = [];
@@ -324,10 +324,6 @@ const Analysis = () => {
     municipality_complaints,
     type,
     title,
-    commId,
-    region,
-    depto,
-    muni,
     error
   ])
 
@@ -433,7 +429,6 @@ const Analysis = () => {
       setOpenSnack(true)
     }
   }
-  console.log(complaint_list);
   return (
     <div>
       <Paper className={classes.root}>

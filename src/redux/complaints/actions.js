@@ -1,6 +1,6 @@
 import * as actionTypes from '../actionTypes';
 import axios from 'axios';
-import { query } from 'gql-query-builder';
+import { mutation, query } from 'gql-query-builder';
 import { API_URL } from '../../constants/api';
 
 export function getComplaintsByCommerce(variables, isLoading = true) {
@@ -84,7 +84,6 @@ export function getComplaintsByCommerce(variables, isLoading = true) {
 }
 
 export function getComplaintsByRegion(variables, isLoading = true) {
-  console.log(variables)
   return dispatch => {
     dispatch({
       type: actionTypes.GET_COMPLAINT_DATA_BY_REGION_REQUEST,
@@ -159,7 +158,6 @@ export function getComplaintsByRegion(variables, isLoading = true) {
         }
       })
       .catch(({ response }) => {
-        console.log(response)
         if (response) {
           dispatch({
             type: actionTypes.GET_COMPLAINT_DATA_BY_REGION_FAILURE,
@@ -245,7 +243,6 @@ export function getComplaintsByDepartment(variables, isLoading = true) {
         }
       })
       .catch(({ response }) => {
-        console.log(response)
         if (response) {
           dispatch({
             type: actionTypes.GET_COMPLAINT_DATA_BY_DEPARTMENT_FAILURE,
@@ -331,11 +328,53 @@ export function getComplaintsByMunicipality(variables, isLoading = true) {
         }
       })
       .catch(({ response }) => {
-        console.log(response.data)
         if (response) {
           dispatch({
             type: actionTypes.GET_COMPLAINT_DATA_BY_MUNICIPALITY_FAILURE,
             error: response.data.error
+          });
+        }
+      })
+  }
+}
+
+export function createComplaint(variables, isLoading = true) {
+  return dispatch => {
+    dispatch({
+      type: actionTypes.CREATE_COMPLAINT_REQUEST,
+      isLoading
+    });
+
+    return axios.post(API_URL, mutation({
+      operation: 'createComplaint',
+      variables,
+      fields: [
+        'id',
+        'detail',
+        'request',
+        'doc_invoice',
+        'createdAt',
+        'updatedAt',
+      ]
+    }))
+      .then((response) => {
+        if (!response.data.errors) {
+          dispatch({
+            type: actionTypes.CREATE_COMPLAINT_RESPONSE,
+            payload: response.data.data.createComplaint
+          });
+        } else {
+          dispatch({
+            type: actionTypes.CREATE_COMPLAINT_FAILURE,
+            error: response.data.errors[0].message
+          });
+        }
+      })
+      .catch(({ response }) => {
+        if (response) {
+          dispatch({
+            type: actionTypes.CREATE_COMPLAINT_FAILURE,
+            error: response.data.errors[0].message
           });
         }
       })

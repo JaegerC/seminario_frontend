@@ -196,7 +196,7 @@ const Search = () => {
       departmentId: depto !== "" ? depto : 0,
       municipalityId: muni !== "" ? muni : 0
     }
-    console.log(variables)
+
     distpach(getCommerceByFilter(variables));
     setRegion('');
     setDepto('');
